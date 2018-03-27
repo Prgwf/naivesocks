@@ -2,22 +2,21 @@
 // Created by wfxzz on 3/27/18.
 //
 
-#include <stdbool.h>
-#include <stdio.h>
+#include <zconf.h>
 #include "cipher.h"
 
-byte *encode_dict = NULL;
-byte *decode_dict = NULL;
+byte *encode_map = NULL;
+byte *decode_map = NULL;
 
-byte encode(byte b) {
-    return encode_dict[b];
+byte map_encode(byte b) {
+    return encode_map[b];
 }
 
-byte decode(byte b) {
-    return decode_dict[b];
+byte map_decode(byte b) {
+    return decode_map[b];
 }
 
-byte *rand_password() {
+byte *get_random_map() {
     /* one to one mapped*/
     byte *a = malloc(sizeof(byte) * KEY_LENGTH);
 
@@ -49,19 +48,43 @@ byte *rand_password() {
     return a;
 }
 
-void new_chiper(byte *dict) {
-    if (encode_dict || decode_dict) {
-        fprintf(stderr, "encode dict or decode dict already init");
+void get_encode_decode_map(byte const *map) {
+    if (encode_map || decode_map) {
+        fprintf(stderr, "encode/decode map already init");
         return;
     }
 
+    encode_map = malloc(sizeof(byte) * KEY_LENGTH);
+    decode_map = malloc(sizeof(byte) * KEY_LENGTH);
+
     int i;
     for (i = 0; i < KEY_LENGTH; ++i) {
-        encode_dict[i] = dict[i];
-        decode_dict[dict[i]] = i;
+        encode_map[i] = map[i];
+        decode_map[map[i]] = i;
     }
-
 }
 
-int main() {
+size_t map2cipher() {
+    size_t  cipher_length;
+    byte *map = get_random_map();
+    byte *cipher;
+
+    cipher = (byte *)base64_encode((unsigned char *)map, KEY_LENGTH, &cipher_length);
+
+    write(1, cipher, cipher_length);
+
+    // cipher2map(cipher, cipher_length);
+
+    return cipher_length;
+}
+
+byte *cipher2map(byte *cipher, size_t cipher_length) {
+    int map_length;
+    byte *map = (byte *)base64_decode((char *)cipher, cipher_length, &map_length);
+
+    return map;
+}
+
+int main(int args, char **argv) {
+    map2cipher();
 }

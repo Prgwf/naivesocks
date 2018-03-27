@@ -5,19 +5,27 @@
 #ifndef NAIVESOCKS_CIPHER_H
 #define NAIVESOCKS_CIPHER_H
 
-
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <event2/bufferevent.h>
+#include <event2/buffer.h>
+#include <time.h>
+
+#include "base64.h"
 
 #define KEY_LENGTH 256
 typedef uint8_t byte;
 
-byte encode(byte b);
-byte decode(byte b);
+byte map_encode(byte b);
+byte map_decode(byte b);
 
-byte *rand_password();
-void new_chipher(byte *dict);
+void get_encode_decode_map(byte const *map);
+
+byte *get_random_map();
+size_t map2cipher();
+byte *cipher2map(byte *cipher, size_t length);
 
 
 #endif //NAIVESOCKS_CIPHER_H
