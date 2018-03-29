@@ -1,0 +1,5 @@
+*.xml
+.idea
+config
+build
+cmake-build-debug

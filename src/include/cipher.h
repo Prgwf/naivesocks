@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <event2/bufferevent.h>
-#include <event2/buffer.h>
 #include <time.h>
 
 #include "base64.h"
@@ -26,6 +24,16 @@ void get_encode_decode_map(byte const *map);
 byte *get_random_map();
 size_t map2cipher();
 byte *cipher2map(byte *cipher, size_t length);
+
+struct js {
+    char cipher[2048];
+    char local_address[32];
+    int local_port;
+    char server_address[32];
+    int server_port;
+} ;
+
+struct js easy_paser(char *pos);
 
 
 #endif //NAIVESOCKS_CIPHER_H

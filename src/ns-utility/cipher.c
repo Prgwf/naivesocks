@@ -85,6 +85,25 @@ byte *cipher2map(byte *cipher, size_t cipher_length) {
     return map;
 }
 
+struct js easy_paser(char *pos) {
+    struct js info;
+
+    FILE *fp;
+    fp = fopen(pos, "r");
+
+    char buf[4096];
+
+    fscanf(fp, "%s", info.cipher);
+    fscanf(fp, "%s", info.local_address);
+    fscanf(fp, "%d", &(info.local_port));
+    fscanf(fp, "%s", info.server_address);
+    fscanf(fp, "%d", &(info.server_port));
+
+    fclose(fp);
+    return info;
+}
+
 int main(int args, char **argv) {
     map2cipher();
+    return 0;
 }
