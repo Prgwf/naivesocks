@@ -6,10 +6,11 @@
 #define NAIVESOCKS_CIPHER_H
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <time.h>
+#include <zconf.h>
+#include <string.h>
+
 
 #include "base64.h"
 
@@ -28,9 +29,9 @@ byte *cipher2map(byte *cipher, size_t length);
 struct js {
     char cipher[2048];
     char local_address[32];
-    int local_port;
+    char local_port[16];
     char server_address[32];
-    int server_port;
+    char server_port[16];
 } ;
 
 struct js easy_paser(char *pos);

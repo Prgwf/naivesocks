@@ -70,8 +70,6 @@ int decode_copy(struct bufferevent *bev,
     return 0;
 }
 
-int main() {
-    printf("Hello World\n");
-
-
-}
+//int main() {
+//    printf("Hello World\n");
+//}

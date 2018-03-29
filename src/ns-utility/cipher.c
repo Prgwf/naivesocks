@@ -2,7 +2,6 @@
 // Created by wfxzz on 3/27/18.
 //
 
-#include <zconf.h>
 #include "cipher.h"
 
 byte *encode_map = NULL;
@@ -87,6 +86,7 @@ byte *cipher2map(byte *cipher, size_t cipher_length) {
 
 struct js easy_paser(char *pos) {
     struct js info;
+    bzero(&info, sizeof(info));
 
     FILE *fp;
     fp = fopen(pos, "r");
@@ -95,15 +95,15 @@ struct js easy_paser(char *pos) {
 
     fscanf(fp, "%s", info.cipher);
     fscanf(fp, "%s", info.local_address);
-    fscanf(fp, "%d", &(info.local_port));
+    fscanf(fp, "%s", info.local_port);
     fscanf(fp, "%s", info.server_address);
-    fscanf(fp, "%d", &(info.server_port));
+    fscanf(fp, "%s", info.server_port);
 
     fclose(fp);
     return info;
 }
 
-int main(int args, char **argv) {
+int main(int argc, char **argv) {
     map2cipher();
     return 0;
 }

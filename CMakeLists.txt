@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 3.9)
 project(naivesocks)
 
-if (UNIX)
-    add_definitions(-Wno-sign-compare -Wno-enum-compare)
-endif (UNIX)
+# Find libevent copy from https://github.com/facebook/hhvm/blob/master/CMake/FindLibEvent.cmake
+# - Find LibEvent (a cross event library)
+# This module defines
+# LIBEVENT_INCLUDE_DIR, where to find LibEvent headers
+# LIBEVENT_LIB, LibEvent libraries
+# LibEvent_FOUND, If false, do not try to use libevent
 
-# dependencies
-# ===================================
-#find_path(LIBEVENT_INCLUDE_DIR event2/event.h REQUIRED)
-#find_package(LIBEVENT REQUIRED)
 set(LibEvent_EXTRA_PREFIXES /usr/local /opt/local "$ENV{HOME}")
 foreach(prefix ${LibEvent_EXTRA_PREFIXES})
     list(APPEND LibEvent_INCLUDE_PATHS "${prefix}/include")
@@ -40,15 +39,11 @@ mark_as_advanced(
         LIBEVENT_LIB
         LIBEVENT_INCLUDE_DIR
 )
-# ===================================
 
 set(CMAKE_CXX_STANDARD 11)
-set(LEVENT_LIBRARIES "-levent")
-
-#target_link_libraries(naivesocks ${LIBEVENT_LIBRARIES})
-
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -Wextra -Werror -march=native")
+
 
 # output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
