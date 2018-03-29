@@ -4,9 +4,6 @@
 
 #include "client.h"
 
-struct sockaddr_storage get_local_info();
-struct sockaddr_stroage get_remote_info();
-
 void usage() {
     printf("usage:\n");
     printf("-c config file path\n");
@@ -98,4 +95,12 @@ void error_cb(struct bufferevent *bev, short error, void *ctx) {
         /* ... */
     }
     bufferevent_free(bev);
+}
+
+void local_read_cb(struct bufferevent *bev, void *ctx) {
+
+}
+
+void server_read_cb(struct bufferevent *bev, void *ctx){
+
 }

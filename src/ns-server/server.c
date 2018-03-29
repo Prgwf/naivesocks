@@ -5,5 +5,6 @@
 #include "server.h"
 
 int main() {
+    printf("test server part\n");
     return 0;
 }

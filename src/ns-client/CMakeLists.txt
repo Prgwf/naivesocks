@@ -1,9 +1,6 @@
-add_executable(client client.c
-        ../ns-utility/base64.c
-        ../ns-utility/cipher.c
-        ../ns-utility/securesocket.c)
+link_directories(${CMAKE_BINARY_DIR}/lib)
 
-
-target_link_libraries(client ${LIBEVENT_LIB})
+add_executable(client client.c)
+target_link_libraries(client ${LIBEVENT_LIB} cipher)
 
 set(LIBEVENT_LIB "-levent")

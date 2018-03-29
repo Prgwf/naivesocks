@@ -15,6 +15,7 @@
 #include <event2/buffer.h>
 #include <event2/listener.h>
 
-#include "securesocket.h"
+#include "cipher.h"
+
 
 #endif //NAIVESOCKS_CLIENT_H

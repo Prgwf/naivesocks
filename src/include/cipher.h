@@ -11,8 +11,11 @@
 #include <zconf.h>
 #include <string.h>
 
+#include <event2/bufferevent.h>
+#include <event2/buffer.h>
 
 #include "base64.h"
+
 
 #define KEY_LENGTH 256
 typedef uint8_t byte;
@@ -35,6 +38,11 @@ struct js {
 } ;
 
 struct js easy_paser(char *pos);
+
+int encode_write(struct bufferevent *bev, void *data, size_t length);
+int decode_read(struct bufferevent *bev, void *data, size_t length);
+int encode_copy(struct bufferevent *bev, struct evbuffer *input);
+int decode_copy(struct bufferevent *bev, struct evbuffer *output);
 
 
 #endif //NAIVESOCKS_CIPHER_H

@@ -6,8 +6,6 @@
 #define NAIVESOCKS_SERVER_H
 
 
-#include "securesocket.h"
-
 
 
 /* SOCKS5 part */
