@@ -31,16 +31,16 @@ byte *cipher2map(byte *cipher, size_t length);
 
 struct js {
     char cipher[2048];
-    char local_address[32];
-    char local_port[16];
     char server_address[32];
     char server_port[16];
+    char local_address[32];
+    char local_port[16];
 } ;
 
 struct js easy_paser(char *pos);
 
-int encode_write(struct bufferevent *bev, void *data, size_t length);
-int decode_read(struct bufferevent *bev, void *data, size_t length);
+int bufferevent_write_encode(struct bufferevent *bev, void *ctx, size_t length);
+int bufferevent_read_decode(struct bufferevent *bev, void *ctx, size_t length);
 int encode_copy(struct bufferevent *bev, struct evbuffer *input);
 int decode_copy(struct bufferevent *bev, struct evbuffer *output);
 

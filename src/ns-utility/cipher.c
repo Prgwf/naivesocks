@@ -15,6 +15,7 @@ byte map_decode(byte b) {
     return decode_map[b];
 }
 
+
 byte *get_random_map() {
     /* one to one mapped*/
     byte *a = malloc(sizeof(byte) * KEY_LENGTH);
@@ -94,21 +95,21 @@ struct js easy_paser(char *pos) {
     char buf[4096];
 
     fscanf(fp, "%s", info.cipher);
-    fscanf(fp, "%s", info.local_address);
-    fscanf(fp, "%s", info.local_port);
     fscanf(fp, "%s", info.server_address);
     fscanf(fp, "%s", info.server_port);
+    fscanf(fp, "%s", info.local_address);
+    fscanf(fp, "%s", info.local_port);
 
     fclose(fp);
     return info;
 }
 
-int encode_write(struct bufferevent *bev,
-                 void *data,
+int bufferevent_write_encode(struct bufferevent *bev,
+                 void *ctx,
                  size_t length) {
     /* encode the data before writo into the buffer*/
     int i, n;
-    byte *buf = data;
+    byte *buf = ctx;
 
     for (i = 0; i < length; ++i) {
         buf[i] = map_encode(buf[i]);
@@ -119,13 +120,13 @@ int encode_write(struct bufferevent *bev,
     return n;
 }
 
-int decode_read(struct bufferevent *bev,
-                void *data,
+int bufferevent_read_decode(struct bufferevent *bev,
+                void *ctx,
                 size_t length) {
     /* decode the data after read from the buffer*/
 
     int i;
-    byte *buf = data;
+    byte *buf = ctx;
 
     size_t  n = bufferevent_read(bev, buf, length);
 
