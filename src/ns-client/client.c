@@ -30,6 +30,11 @@ int main(int argc, char **argv) {
             case 'c':
                 sprintf(config_file_pos, "%s", optarg);
                 break;
+
+            case 'd':
+                // todo daemon
+                break;
+
             default:
                 usage();
                 break;
@@ -39,6 +44,7 @@ int main(int argc, char **argv) {
     struct js config = easy_paser(config_file_pos);
     size_t length = strlen(config.cipher);
     byte *map = cipher2map((byte *)config.cipher, length);
+    get_encode_decode_map(map);
 
     struct event_base *base;
     struct evconnlistener *listener;
@@ -58,7 +64,25 @@ int main(int argc, char **argv) {
         perror("base");
         return 1;
     }
-    listener = evconnlistener_new_bind(base, do_accept, base,
+
+    struct sockaddr_in remote_addr;
+    bzero(&remote_addr, sizeof(remote_addr));
+    remote_addr.sin_family = AF_INET;
+    remote_addr.sin_port = htons(atoi(config.server_port));
+//    inet_aton(config.server_address, &remote_addr.sin_addr);
+    remote_addr.sin_addr = local_addr.sin_addr; /* local test */
+
+
+    struct Reomte *remote_info;
+    remote_info = malloc(sizeof(remote_info));
+    if (remote_info == NULL) {
+        perror("new remote_info");
+        return 1;
+    }
+    remote_info->sin = remote_addr;
+    remote_info->base = base;
+
+    listener = evconnlistener_new_bind(base, do_accept, remote_info,
                                        LEV_OPT_REUSEABLE | LEV_OPT_CLOSE_ON_FREE, -1,
                                        (struct sockaddr *)&local_addr, sizeof(local_addr));
     if (!listener) {
@@ -79,24 +103,34 @@ int main(int argc, char **argv) {
 
 void do_accept(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *addr, int length, void *ctx) {
     // debug by printf
-    printf("in func: do_accept\n");
+    printf("server: accept from browser\n");
 
-    struct event_base *base;
-    struct bufferevent *bufevin, *bufevout;
+    struct Reomte *info = ctx;
+    struct event_base *base = info->base;
+    struct sockaddr_in sin = info->sin;
 
-    base = (struct event_base *)ctx;
-
+    struct bufferevent *bufevin;
     bufevin = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
-    bufevout = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE); // here: fd = -1 means set later...
+    if (bufevin == NULL) {
+        perror("bufevin");
+        return;
+    }
 
-    if (bufferevent_socket_connect(bufevout, addr, length) < 0) {
-        perror("client,bufferevent_socket_connect");
+    struct bufferevent *bufevout;
+    bufevout = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE); // here: fd = -1 means set later...
+    if (bufevout == NULL) {
+        perror("bufevout");
+        return;
+    }
+
+    if (bufferevent_socket_connect(bufevout, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+        perror("client --> server, bufferevent_socket_connect");
         bufferevent_free(bufevin);
         bufferevent_free(bufevout);
         return;
     }
 
-//    bufferevent_setcb(bufevout, read_cb_from_server, NULL, error_cb, bufevin);
+    bufferevent_setcb(bufevout, read_cb_from_server, NULL, error_cb_from_server, bufevin);
     bufferevent_setcb(bufevin, read_cb_from_local, NULL, error_cb_from_local, bufevout);
 
     bufferevent_enable(bufevout, EV_READ|EV_WRITE);
@@ -104,22 +138,11 @@ void do_accept(struct evconnlistener *listener, evutil_socket_t fd, struct socka
 
 }
 
-void error_cb(struct bufferevent *bev, short error, void *ctx) {
-    if (error & BEV_EVENT_EOF) {
-        /* connection has been closed, do any clean up here */
-        /* ... */
-//        fprintf(stderr, "connection has been closed!\n");
-        perror("error_call_back");
-    } else if (error & BEV_EVENT_ERROR) {
-        /* check errno to see what error occurred */
-        /* ... */
-//        fprintf(stderr, "error!\n");
-        perror("error_call_back");
-    } else if (error & BEV_EVENT_TIMEOUT) {
-        /* must be a timeout event handle, handle it */
-        /* ... */
-//        fprintf(stderr, "timeout!");
-        perror("error_call_back");
+void error_cb_from_server(struct bufferevent *bev, short what, void *ctx) {
+    if (what & (BEV_EVENT_ERROR|BEV_EVENT_EOF)) {
+        if (what & BEV_EVENT_ERROR) {
+            perror("error_cb from_server");
+        }
     }
     bufferevent_free(bev);
 }
@@ -143,36 +166,39 @@ void error_cb_from_local(struct bufferevent *bev, short what, void *ctx) {
 void read_cb_from_local(struct bufferevent *bev, void *ctx) {
     struct bufferevent *tar = ctx;
 
-    byte temp[4096];
+    byte temp[BUF_SIZE];
     bzero(&temp, sizeof(temp));
     size_t n;
 
     for (; ;) {
-        n = bufferevent_read(bev, temp, sizeof(temp));
+        n = bufferevent_read(bev, temp, BUF_SIZE);
 
         // debug: show the message from browser!
-        printf("message from browser: %d, %s\n", n, temp);
+        printf("message from browser: %d\n", n);
 
         if (n <= 0) {
             break; /*no more data*/
         }
-        bufferevent_write_encode(tar, temp, sizeof(temp));
+
+        printf("now local encode ctx and write to buffer\n");
+
+        bufferevent_write_encode(tar, temp, n);
     }
 }
 
 void read_cb_from_server(struct bufferevent *bev, void *ctx){
     struct bufferevent *tar = ctx;
 
-    char temp[4096];
+    byte temp[BUF_SIZE];
     bzero(&temp, sizeof(temp));
     size_t n;
 
     for (; ;) {
-        n = bufferevent_read_decode(bev, temp, sizeof(temp));
+        n = bufferevent_read_decode(bev, temp, BUF_SIZE);
         if (n <= 0) {
             break;
         }
-        bufferevent_write(tar, temp, sizeof(temp));
+        bufferevent_write(tar, temp, n);
     }
 }
 

@@ -16,7 +16,7 @@
 
 #include "base64.h"
 
-
+#define BUF_SIZE 4096
 #define KEY_LENGTH 256
 typedef uint8_t byte;
 

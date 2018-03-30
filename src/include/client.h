@@ -17,5 +17,9 @@
 
 #include "cipher.h"
 
+struct Reomte {
+    struct sockaddr_in sin;
+    struct event_base *base;
+};
 
 #endif //NAIVESOCKS_CLIENT_H

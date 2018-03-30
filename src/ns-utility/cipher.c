@@ -50,7 +50,7 @@ byte *get_random_map() {
 
 void get_encode_decode_map(byte const *map) {
     if (encode_map || decode_map) {
-        fprintf(stderr, "encode/decode map already init");
+        fprintf(stderr, "encode/decode map already init, maybe local test?");
         return;
     }
 
@@ -61,6 +61,7 @@ void get_encode_decode_map(byte const *map) {
     for (i = 0; i < KEY_LENGTH; ++i) {
         encode_map[i] = map[i];
         decode_map[map[i]] = i;
+//        printf("%d %c %x\n", map[i], map[i], map[i]);
     }
 }
 
@@ -117,6 +118,8 @@ int bufferevent_write_encode(struct bufferevent *bev,
 
     n = bufferevent_write(bev, buf, length);
 
+    printf("bufferevent_write_encode: wrting into buffer %d\n", n);
+
     return n;
 }
 
@@ -137,37 +140,5 @@ int bufferevent_read_decode(struct bufferevent *bev,
     }
 
     return (int)n;
-}
-
-int encode_copy(struct bufferevent *bev,
-                struct evbuffer *input) {
-
-    struct evbuffer_iovec *v;  /* io optimization */
-    size_t size = evbuffer_get_length(input);
-
-    int i, j, n;
-    n = evbuffer_peek(input, size, NULL, NULL, 0);
-    if (n > 0) {
-        v = malloc(sizeof(struct evbuffer_iovec) * n);
-        n = evbuffer_peek(input, size, NULL, v, n);
-        for (i = 0; i < n; ++i) {
-            byte *b = v[i].iov_base;
-            size_t blen = v[i].iov_len;
-            for (j = 0; j < blen; ++j) {
-                b[j] = map_encode(b[j]);
-            }
-        }
-
-        free(v);
-
-        bufferevent_write_buffer(bev, input);
-    }
-
-    return n;
-}
-
-int decode_copy(struct bufferevent *bev,
-                struct evbuffer *output) {
-    return 0;
 }
 
