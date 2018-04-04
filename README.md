@@ -1,5 +1,3 @@
-## Thanks BOSS Qian!
-
 ### Client
 1. listen requests from browser
 2. encrypt the data

@@ -106,7 +106,7 @@ void do_accept(struct evconnlistener *listener, evutil_socket_t fd, struct socka
     printf("server: accept from browser\n");
 
     struct Reomte *info = ctx;
-    struct event_base *base = info->base;
+    struct event_base *base = evconnlistener_get_base(listener);
     struct sockaddr_in sin = info->sin;
 
     struct bufferevent *bufevin;
