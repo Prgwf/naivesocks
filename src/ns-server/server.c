@@ -115,7 +115,7 @@ void read_cb(struct bufferevent *bev, void *ctx) {
     handleRequest(bev, info);
     break;
   default:
-    fprintf(stderr, "read_cb error\n");
+    fprintf(stderr, "read_cb +1 error\n");
     return;
   }
 }
@@ -124,7 +124,10 @@ void read_error_cb(struct bufferevent *bev, short what, void *ctx) {
     struct INFO *info = ctx;
     if (what & BEV_EVENT_ERROR) {
         fprintf(stderr, "read_cb error\n");
-	free(info);
+	if (info) {
+	  free(info);
+	  info = 0;
+	}
 	bufferevent_free(bev);
     }
 }
@@ -137,6 +140,7 @@ void write_error_cb(struct bufferevent *bev, short what, void *ctx) {
         fprintf(stderr, "write error\n");
 	if (data) {
 	  bufferevent_free(data);
+	  data = 0;
 	}
 	bufferevent_free(bev);
     }
@@ -171,7 +175,10 @@ void handleHello(struct bufferevent *bev, struct INFO *info) {
     if (n < 3 || temp[0] != 0x05) {
       fprintf(stderr, "read error\n");
       bufferevent_free(bev);
-      free(info);
+      if (info) {
+	free(info);
+	info = 0;
+      }
       return;
     }
 
@@ -207,7 +214,10 @@ void handleConnect(struct bufferevent *bev, struct INFO *info) {
   if (info->mode != SOCK5_CONNECT) {
     fprintf(stderr, "Not Connect Step!\n");
     bufferevent_free(bev);
-    free(info);
+    if (info) {
+      free(info);
+      info = 0;
+    }
     return;
   }
 
@@ -245,15 +255,22 @@ void handleConnect(struct bufferevent *bev, struct INFO *info) {
   n = bufferevent_read_decode(bev, temp, BUF_SIZE);
   if (n < 7) {
     fprintf(stderr, "read error\n");
-    bufferevent_free(bev);
-    free(info);
+    bufferevent_free(bev); 
+    if (info) {
+      free(info);
+      info = 0;
+    }
+
     return;
   }
 
   if (temp[0] != 0x05 || temp[1] != 0x01) {
     fprintf(stderr, "CMD error\n");
     bufferevent_free(bev);
-    free(info);
+    if (info) {
+      free(info);
+      info = 0;
+    }
     return;
   }
 
@@ -304,8 +321,10 @@ void handleConnect(struct bufferevent *bev, struct INFO *info) {
     if (evutil_getaddrinfo(domain, port, &hints, &res) < 0) {
       fprintf(stderr, "get addrinfo error\n");
       bufferevent_free(bev);
-      if (info)
-	free(info); 
+      if (info) {
+	free(info);
+	info = 0;
+      }
       return;
     }
 
@@ -322,7 +341,10 @@ void handleConnect(struct bufferevent *bev, struct INFO *info) {
   default:
     fprintf(stderr, "address error\n");
     bufferevent_free(bev);
-    free(info);
+    if (info) {
+      free(info);
+      info = 0;
+    }
     return;
   }
 
@@ -332,35 +354,60 @@ void handleConnect(struct bufferevent *bev, struct INFO *info) {
   if (bev_new == NULL) {
     fprintf(stderr, "bufferevent socket new error\n");
     bufferevent_free(bev);
-    free(info);
+    if (info) {
+      free(info);
+      info = 0;
+    }
     return;
   }
 
   if (bufferevent_socket_connect(bev_new, (struct sockaddr *)&sin, slen) < 0) {
     bufferevent_free(bev);
     bufferevent_free(bev_new);
-    free(info);
+    if (info) {
+      free(info);
+      info = 0;
+    }
     return;
   }
 
-  bufferevent_setcb(bev_new, NULL, NULL, write_error_cb, bev);
+  bzero(temp, sizeof(temp));
+  temp[0] = 0x05;
+  temp[3] = 0x01;
+
+  bufferevent_write_encode(bev, temp, 10);
+  
+  bufferevent_setcb(bev_new, dst_read_cb, NULL, write_error_cb, bev);
   bufferevent_enable(bev_new, EV_READ|EV_WRITE);
 
   info->mode += 1;
   info->bev = bev_new;
 
   printf("server: sock5 connection!\n");
-
 }
 
 void handleRequest(struct bufferevent *bev, struct INFO *info) {
-    int n;
-    byte *temp[BUF_SIZE];
+  int n;
+  byte *temp[BUF_SIZE];
 
-    n = bufferevent_read_decode(bev, temp, BUF_SIZE);
-    if (n != 0) {
-        bufferevent_write(info->bev, temp, n);
-    }
+  n = bufferevent_read_decode(bev, temp, BUF_SIZE);
+  
+  if (n != 0) {
+    bufferevent_write(info->bev, temp, n);
+  }
 
-    printf("server: sock5 request!\n");
+  printf("server: sock5 request!\n");
+}
+
+void dst_read_cb(struct bufferevent *bin, void *ctx) {
+  struct bufferevent *bout = ctx;
+  int n;
+  byte *temp[BUF_SIZE];
+
+  n = bufferevent_read(bin, temp, BUF_SIZE);
+  if (n != 0) {
+    bufferevent_write_encode(bout, temp, n);
+  }
+
+  printf("dst: sock5 return!\n");
 }

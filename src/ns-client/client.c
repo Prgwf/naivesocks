@@ -145,8 +145,9 @@ void error_cb_from_local(struct bufferevent *bev, short what, void *ctx) {
       if (evbuffer_get_length(bufferevent_get_output(data))) {
 	bufferevent_setcb(bev, NULL, close_on_finish_write_cb, error_cb_from_local, data);
 	bufferevent_disable(data, EV_READ);
+	data = 0;
       } else {
-	bufferevent_free(bev);
+	bufferevent_free(bev); 
       }
     }
   } 

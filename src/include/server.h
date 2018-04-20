@@ -48,6 +48,6 @@ void read_cb(struct bufferevent *bev, void *ctx);
 void read_error_cb(struct bufferevent *bev, short what, void *ctx);
 //void write_cb(struct bufferevent *bev, void *ctx);
 void write_error_cb(struct bufferevent *bev, short what, void *ctx);
-
+void dst_read_cb(struct bufferevent *bin, void *ctx);
 
 #endif //NAIVESOCKS_SERVER_H
