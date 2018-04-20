@@ -22,4 +22,13 @@ struct Reomte {
     struct event_base *base;
 };
 
+void do_accept(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *addr, int length, void *ctx);
+void read_cb_from_local(struct bufferevent *bev, void *ctx);
+void read_cb_from_server(struct bufferevent *bev, void *ctx);
+void error_cb(struct bufferevent *bev, short error, void *ctx);
+void error_cb_from_local(struct bufferevent *bev, short what, void *ctx);
+void error_cb_from_server(struct bufferevent *bev, short what, void *ctx);
+void close_on_finish_write_cb(struct bufferevent *bev, void *ctx);
+
+
 #endif //NAIVESOCKS_CLIENT_H

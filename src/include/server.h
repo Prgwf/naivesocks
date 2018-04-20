@@ -39,4 +39,15 @@ struct INFO {
     struct bufferevent *bev;
 };
 
+void handleHello(struct bufferevent *bev, struct INFO *info);
+void handleConnect(struct bufferevent *bev, struct INFO *info);
+void handleRequest(struct bufferevent *bev, struct INFO *info);
+
+void do_accept(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *addr, int length, void *ctx);
+void read_cb(struct bufferevent *bev, void *ctx);
+void read_error_cb(struct bufferevent *bev, short what, void *ctx);
+//void write_cb(struct bufferevent *bev, void *ctx);
+void write_error_cb(struct bufferevent *bev, short what, void *ctx);
+
+
 #endif //NAIVESOCKS_SERVER_H
